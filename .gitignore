@@ -1,0 +1,26 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Credenciales locales
+.env
+
+#Datos
+data/
+
+# IDE
+.vscode/
+.idea/
+
+# Airflow (cuando corras en local o con Docker)
+airflow_home/
+logs/
+dags/__pycache__/
+plugins/__pycache__/
