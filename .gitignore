@@ -25,3 +25,9 @@ airflow_home/
 logs/
 dags/__pycache__/
 plugins/__pycache__/
+
+# Testing de scripts
+manual_tests/
+
+#Notas
+notas.txt
