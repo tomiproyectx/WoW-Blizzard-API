@@ -11,6 +11,7 @@ wheels/
 
 # Credenciales locales
 .env
+.blizzard_access_token
 
 #Datos
 data/
@@ -24,3 +25,10 @@ airflow_home/
 logs/
 dags/__pycache__/
 plugins/__pycache__/
+
+# Testing de scripts
+manual_tests/
+
+#Notas
+notas.txt
+Estructura de archivos.txt
