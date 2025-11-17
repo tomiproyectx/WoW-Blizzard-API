@@ -15,7 +15,7 @@ from tp2025.transforms.transform_leaderboard import create_cur_leaderboard
 
 def run_build_leaderboard_cur() -> None:
     create_cur_leaderboard()
-    print("[build_leaderboard_cur] Proceso CUR finalizado correctamente.")
+    print("[build_leaderboard_cur] Proceso CUR de PvP leaderboard finalizado correctamente.")
 
 
 if __name__ == "__main__":
