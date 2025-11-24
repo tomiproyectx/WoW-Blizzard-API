@@ -5,9 +5,9 @@ from pathlib import Path
 import os
 from datetime import datetime, timedelta
 
-from airflow import DAG
-from airflow.models import Variable
-from airflow.operators.python import PythonOperator
+from airflow import DAG # type: ignore
+from airflow.models import Variable # type: ignore
+from airflow.operators.python import PythonOperator # type: ignore
 
 THIS_FILE = Path(__file__).resolve()
 PROJECT_ROOT = THIS_FILE.parents[1]
@@ -90,7 +90,7 @@ with DAG(
     description="Pipeline diario completo: Blizzard API -> DuckDB (raw/cur) -> Redshift",
     default_args=default_args,
     start_date=datetime(2025, 11, 1),
-    schedule_interval="0 6 * * *",  # diario
+    schedule_interval=None,  # diario "0 6 * * *"
     catchup=False,
     max_active_runs=1,
     tags=["wow", "tp2025", "blizzard"],

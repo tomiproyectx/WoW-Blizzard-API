@@ -1,0 +1,88 @@
+version: "3.9"
+
+x-airflow-env: &airflow-env
+  # Config Airflow
+  AIRFLOW__CORE__EXECUTOR: LocalExecutor
+  AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+  AIRFLOW__CORE__FERNET_KEY: "3SdmGwogzpb9bHVPLD2EIA5s6kfeY3nH8ZqGrLKJHus="
+  AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "True"
+
+  # Conexión a la base metadata de Airflow (Postgres)
+  AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+  AIRFLOW__DATABASE__LOAD_DEFAULT_CONNECTIONS: "False"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: airflow-postgres
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  airflow-init:
+    image: wow-airflow:latest
+    container_name: airflow-init
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      <<: *airflow-env
+    command: [
+      "bash",
+      "-c",
+      "airflow db migrate && airflow users create --username airflow --password airflow --firstname Air --lastname Flow --role Admin --email airflow@example.com || echo 'User may already exist'; \
+       airflow variables set BLIZZARD_CLIENT_ID \"$BLIZZARD_CLIENT_ID\"; \
+       airflow variables set BLIZZARD_CLIENT_SECRET \"$BLIZZARD_CLIENT_SECRET\"; \
+       airflow variables set BLIZZARD_REGION \"${BLIZZARD_REGION:-us}\""
+    ]
+
+
+
+  airflow-webserver:
+    image: wow-airflow:latest
+    container_name: airflow-webserver
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    environment:
+      <<: *airflow-env
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/opt/airflow/project/data
+    command: webserver
+
+  airflow-scheduler:
+    image: wow-airflow:latest
+    container_name: airflow-scheduler
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    environment:
+      <<: *airflow-env
+    volumes:
+      - ./data:/opt/airflow/project/data
+    command: scheduler
+
+volumes:
+  postgres-data:
