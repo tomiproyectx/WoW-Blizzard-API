@@ -16,7 +16,7 @@
 <br>
 
 ⚔️ Datos PvP | 🧙 Transformaciones | 🐤 DuckDB | 🚀 Redshift | ♻️ Airflow  
-**Pipeline diario de datos estilo producción**
+**Pipeline diario de datos**
 
 </div>
 
@@ -24,7 +24,7 @@
 
 # 📐 1. Arquitectura General
 
-<div align="center">
+
 
             ┌──────────────────────┐
             │    Blizzard API      │
@@ -33,7 +33,7 @@
             └──────────┬───────────┘
                        │
                        ▼
-             Landing (Parquet)
+               Landing (Parquet)
                        │
                        ▼
                 RAW Layer (DuckDB)
@@ -42,10 +42,10 @@
              CUR Layer (DuckDB – Typed)
                        │
                        ▼
-         AWS Redshift (Star Schema + SCD2)
+          AWS Redshift (Star Schema + SCD2)
                        │
                        ▼
-         Airflow DAG (Docker Compose)
+           Airflow DAG (Docker Compose)
 
 
 </div>
@@ -157,28 +157,33 @@ Clonar:
 ```bash
 git clone https://github.com/tomiproyectx/WoW-Blizzard-API.git
 cd WoW-Blizzard-API
+```
+## **5.2 Configurar credenciales**
 
-5.2 Configurar credenciales
 Crear .env:
-
+```bash
 make env
-
+```
 Completar:
-BLIZZARD_CLIENT_ID=xxxx
-BLIZZARD_CLIENT_SECRET=xxxx
-BLIZZARD_REGION=us
 
-REDSHIFT_URI=postgresql://user:pass@host:5439/db
-REDSHIFT_SCHEMA="2025_usuario_schema"
+***BLIZZARD_CLIENT_ID***=xxxx
 
-5.3 Construir imagen
+***BLIZZARD_CLIENT_SECRET***=xxxx
 
+***BLIZZARD_REGION***=us
+
+***REDSHIFT_URI***=postgresql://user:pass@host:5439/db
+
+***REDSHIFT_SCHEMA***=2025_usuario_schema
+
+## **5.3 Construir imagen**
+```bash
 make build
-
-5.4 Inicializar Airflow
-
+```
+## **5.4 Inicializar Airflow**
+```bash
 make init
-
+```
 Crea:
 
 metadata DB
@@ -187,16 +192,16 @@ usuario admin
 
 variables Blizzard
 
-5.5 Levantar Airflow
-
+## **5.5 Levantar Airflow**
+```bash
 make up
-
+```
 UI:
 👉 http://localhost:8080
 User: airflow
 Password: airflow
 
-5.6 Ejecutar DAG
+## **5.6 Ejecutar DAG**
 
 En Airflow:
 
@@ -207,9 +212,10 @@ Trigger manual
 Genera:
 
 Parquets → data/landing/
+
 DuckDB → data/localdb/wow_data.db
 
-6. Testing
+# 6. Testing
 
 Carpeta: tests/
 Incluye tests para:
@@ -221,27 +227,30 @@ transformaciones leaderboard
 transformaciones chinfo
 
 Ejecutar:
-
+```bash
 make test
-
+```
 GitHub Actions ejecuta los tests en cada PR.
 
-7. Consideraciones Previas (Docker & Permisos)
+# 7. Consideraciones Previas (Docker & Permisos)
 
-7.1 Uso de sudo según configuración Docker
+## **7.1 Uso de sudo según configuración Docker**
 
 Si Docker requiere privilegios:
+```bash
 sudo make build
 sudo make up
 sudo docker compose ps
+```
 
 Si el usuario pertenece al grupo docker, no es necesario.
 
-7.2 Carpeta data/ requerida
+## **7.2 Carpeta data/ requerida**
 
 data/landing/   → Parquets
 data/localdb/   → Base DuckDB
-
+``` bash
 mkdir -p data/landing
 mkdir -p data/localdb
 chmod -R 755 data/
+```
