@@ -139,8 +139,10 @@ set_blizzard_env_vars
 → build_chinfo_cur
 → load_redshift_model
 
-Frecuencia: **06:00 AM diario**  
-Airflow carga automáticamente credenciales Blizzard vía Variables.
+El DAG está diseñado para correr diariamente a las 06:00 (0 6 * * *).
+
+**ACLARACIÓN**: En este repo se deja el schedule_interval=None para facilitar pruebas manuales.
+Para activar la ejecución diaria, basta con reemplazar schedule_interval=None por schedule_interval="0 6 * * *".
 
 ---
 
@@ -175,6 +177,9 @@ Completar:
 ***REDSHIFT_URI***=postgresql://user:pass@host:5439/db
 
 ***REDSHIFT_SCHEMA***=2025_usuario_schema
+
+> Las credenciales reales de Blizzard y Redshift se entregan por privado (mail / Slack),
+> el archivo `.env` del repo solo contiene el esqueleto de variables.
 
 ## **5.3 Construir imagen**
 ```bash
@@ -254,3 +259,49 @@ mkdir -p data/landing
 mkdir -p data/localdb
 chmod -R 755 data/
 ```
+
+# 8. Estructura del repositorio (alto nivel)
+
+- `dags/wow_pvp_full_pipeline_dag.py`  
+  DAG diario que orquesta todo el pipeline:
+  Blizzard API → DuckDB (raw/cur) → Redshift.
+
+- `src/tp2025/blizzard_api/`  
+  - `auth_client.py`: autenticación contra Blizzard (Client Credentials Flow).
+  - `endpoints.py`: construcción de URLs de las APIs (season, leaderboard, profile).
+
+- `src/tp2025/jobs/`  
+  - `extract_leaderboard_to_landing.py`: extrae PvP leaderboards a Parquet (landing).
+  - `load_leaderboard_raw_to_db.py`: carga leaderboards a tabla RAW (DuckDB).
+  - `build_leaderboard_cur.py`: genera tabla CUR de leaderboard.
+  - `extract_chinfo_to_landing.py`: selecciona top chars y extrae profiles a Parquet.
+  - `load_chinfo_raw_to_db.py`: carga info de personajes a RAW.
+  - `build_chinfo_cur.py`: genera tabla CUR de personajes.
+  - `load_warehouse_redshift.py`: lee CUR (DuckDB) y carga modelo estrella en Redshift.
+
+- `src/tp2025/transforms/`  
+  - `transform_leaderboard.py`: lógica de casteo y modelado de `cur_pvp_leaderboard`.
+  - `transform_chinfo.py`: lógica de casteo y modelado de `cur_chinfo`.
+
+- `src/tp2025/warehouse/`  
+  - `connect_redshift.py`: conexión y `search_path` a Redshift.
+  - `redshift_model.py`: DDL + cargas bulk (SCD2 de personajes y fact snapshot).
+
+- `src/tp2025/io/load_localdb.py`  
+  Helper para conexión a DuckDB y ejecución de SQL local.
+
+- `src/tp2025/services/`  
+  - `character_selection.py`: selección de top personajes únicos desde CUR.
+  - `ch_profile_client.py`: requests concurrentes al endpoint de perfil de personaje.
+
+- `docker-compose.yml`  
+  Orquesta Postgres (metadata) + Airflow webserver/scheduler.
+
+- `Dockerfile`  
+  Imagen custom de Airflow con el proyecto instalado vía `uv`.
+
+- `Makefile`  
+  Atajos: `make env`, `make build`, `make init`, `make up`, `make down`, `make test`.
+
+- `tests/`  
+  Tests unitarios para autenticación y transformaciones (leaderboard + chinfo).
