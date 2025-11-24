@@ -5,7 +5,6 @@ import os
 DEFAULT_REGION: str = os.getenv("BLIZZARD_REGION", "us")
 DEFAULT_LOCALE: str = os.getenv("BLIZZARD_LOCALE", "en_US")
 
-# Namespaces separados por tipo de API
 # Para PvP / data:
 DEFAULT_PVP_NAMESPACE: str = os.getenv("BLIZZARD_PVP_NAMESPACE", "dynamic-us")
 # Para character profile:
@@ -93,47 +92,5 @@ def get_character_profile_url(
 
     return (
         f"{base}/profile/wow/character/{realm_slug}/{char}"
-        f"?namespace={ns}&locale={loc}"
-    )
-
-
-def get_character_professions_url(
-    *,
-    realm_slug: str,
-    character_name: str,
-    namespace: str | None = None,
-    locale: str | None = None,
-) -> str:
-    """
-    /profile/wow/character/{realmSlug}/{characterName}/professions
-    """
-    base = get_base_url()
-    ns = namespace or DEFAULT_PROFILE_NAMESPACE
-    loc = locale or DEFAULT_LOCALE
-    char = _normalize_character_name(character_name)
-
-    return (
-        f"{base}/profile/wow/character/{realm_slug}/{char}/professions"
-        f"?namespace={ns}&locale={loc}"
-    )
-
-
-def get_character_achievements_url(
-    *,
-    realm_slug: str,
-    character_name: str,
-    namespace: str | None = None,
-    locale: str | None = None,
-) -> str:
-    """
-    /profile/wow/character/{realmSlug}/{characterName}/achievements
-    """
-    base = get_base_url()
-    ns = namespace or DEFAULT_PROFILE_NAMESPACE
-    loc = locale or DEFAULT_LOCALE
-    char = _normalize_character_name(character_name)
-
-    return (
-        f"{base}/profile/wow/character/{realm_slug}/{char}/achievements"
         f"?namespace={ns}&locale={loc}"
     )

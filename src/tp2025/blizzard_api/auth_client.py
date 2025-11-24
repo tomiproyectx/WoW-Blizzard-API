@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Archivo en la raíz del proyecto (asumiendo que ejecutás desde la raíz)
 TOKEN_FILE = Path.cwd() / ".blizzard_access_token"
 
 

@@ -5,7 +5,6 @@ from typing import Optional
 import sys
 from pathlib import Path
 
-# Ajuste de sys.path solo si ejecutás este script directamente
 THIS_FILE = Path(__file__).resolve()
 PROJECT_ROOT = THIS_FILE.parents[3]
 SRC_DIR = PROJECT_ROOT / "src"

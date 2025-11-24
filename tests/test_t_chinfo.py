@@ -78,7 +78,6 @@ def test_build_profiles_dataframe_filters_none_payloads():
     df = build_profiles_dataframe(meta_and_payloads)
 
     assert isinstance(df, pd.DataFrame)
-    # Solo debe quedar 1 fila (la que tiene payload)
     assert df.shape[0] == 1
     row = df.iloc[0]
     assert row["id"] == 1

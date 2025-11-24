@@ -35,7 +35,7 @@ def get_processing_date_str() -> str:
 def list_parquet_for_processing_date(processing_date: str) -> List[Path]:
     """
     Lista los parquet de character info para la fecha dada.
-    Por diseño actual: un único archivo del estilo:
+    Un único archivo del estilo:
       ch_profile_{processing_date}.parquet
     """
     pattern = f"ch_profile_{processing_date}.parquet"
@@ -75,7 +75,6 @@ def load_parquet_to_dataframe(path: Path) -> pd.DataFrame:
 def ensure_table_exists() -> None:
     """
     Crea el esquema y la tabla RAW si no existen.
-    Todas las columnas como VARCHAR, igual filosofía que raw_pvp_leaderboard.
     """
     conn = get_connection()
 

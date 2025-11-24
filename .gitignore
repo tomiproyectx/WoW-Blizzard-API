@@ -21,13 +21,14 @@ data/
 .idea/
 
 # Airflow (cuando corras en local o con Docker)
-airflow_home/
+.airflow/
 logs/
 dags/__pycache__/
 plugins/__pycache__/
 
 # Testing de scripts
 manual_tests/
+blizzard.egg-info
 
 #Notas
 notas.txt

@@ -53,7 +53,7 @@ def run_extract_chinfo_to_landing() -> None:
     chars_df = get_top_pvp_characters(processing_date, limit_total=500)
     print(
     f"[extract_chinfo_to_landing] Personajes seleccionados: "
-    f"{len(chars_df)} filas (máx 200, únicos por char_id)."
+    f"{len(chars_df)} filas (máx 500, únicos por char_id)."
     )
 
 
