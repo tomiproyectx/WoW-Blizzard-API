@@ -1,7 +1,7 @@
 <div align="center">
 
-# 🏆 WoW PvP Leaderboard ETL Pipeline  
-**ETL/ELT end-to-end usando Blizzard APIs, Airflow, DuckDB, Parquet y AWS Redshift**
+# 🏆 World of Warcraft E2E Pipeline  
+**Pipeline Batch ELT usando WoW Blizzard APIs**
 
 <br>
 
@@ -15,8 +15,6 @@
 
 <br>
 
-⚔️ Datos PvP | 🧙 Transformaciones | 🐤 DuckDB | 🚀 Redshift | ♻️ Airflow  
-**Pipeline diario de datos**
 
 </div>
 
@@ -24,29 +22,15 @@
 
 # 📐 1. Arquitectura General
 
-
-
-            ┌──────────────────────┐
-            │    Blizzard API      │
-            │  (Season / PvP /     │
-            │   Character Info)    │
-            └──────────┬───────────┘
-                       │
-                       ▼
-               Landing (Parquet)
-                       │
-                       ▼
-                RAW Layer (DuckDB)
-                       │
-                       ▼
-             CUR Layer (DuckDB – Typed)
-                       │
-                       ▼
-          AWS Redshift (Star Schema + SCD2)
-                       │
-                       ▼
-           Airflow DAG (Docker Compose)
-
+<div align="center">
+  <a href="https://raw.githubusercontent.com/tomiproyectx/WoW-Blizzard-API/main/docs/DFD - WoW PVP Pipeline.drawio.svg" target="_blank">
+    <img
+      src="./docs/DFD - WoW PVP Pipeline.drawio.svg"
+      alt="DFD – WoW PvP Data Pipeline"
+      width="1200"
+    />
+  </a>
+</div>
 
 </div>
 
