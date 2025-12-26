@@ -151,10 +151,10 @@ Install:
 
 Clone the repository:
 
+```bash
 git clone https://github.com/tomiproyectx/WoW-Blizzard-API.git  
-
 cd WoW-Blizzard-API
-
+```
 ---
 
 ## 5.2 Configure Credentials
