@@ -1,7 +1,9 @@
 <div align="center">
 
 # 🏆 World of Warcraft E2E Pipeline  
-**Pipeline Batch ELT usando WoW Blizzard APIs**
+**Batch ELT Pipeline using WoW Blizzard APIs**
+
+:es: [Versión en Español](README_SPANISH.md)
 
 <br>
 
@@ -15,12 +17,11 @@
 
 <br>
 
-
 </div>
 
 ---
 
-# 📐 1. Arquitectura General
+# 📐 1. General Architecture
 
 <div align="center">
   <a href="https://raw.githubusercontent.com/tomiproyectx/WoW-Blizzard-API/main/docs/DFD%20-%20WoW%20PVP%20Pipeline.png">
@@ -35,260 +36,327 @@
 🔍 **Interactive diagram (zoom & pan)**  
 [Open full diagram](https://app.diagrams.net/?title=DFD%20-%20WoW%20PVP%20Pipeline&dark=1#Uhttps%3A%2F%2Fdrive.google.com%2Fuc%3Fid%3D1EvyHY1401TK8Rg3L7pjWymF4CVcQ0qGY%26export%3Ddownload)
 
-</div>
-
 ---
 
-# 🌐 2. APIs Utilizadas
+# 🌐 2. APIs Used
 
 ### • **PvP Season Index**  
 `/data/wow/pvp-season/index`  
-Obtiene la temporada vigente (`current_season.id`).
+Retrieves the active season (`current_season.id`).
 
 ### • **PvP Leaderboards (2v2 / 3v3)**  
 `/data/wow/pvp-season/{season}/pvp-leaderboard/{bracket}`  
-Ranking + estadísticas PvP.
+Ranking and PvP statistics.
 
 ### • **Character Profile Summary**  
 `/profile/wow/character/{realmSlug}/{characterName}`  
-Información completa del personaje.
+Full character information.
 
-Los endpoints viven en:  
+Endpoints are defined in:  
 `src/tp2025/blizzard_api/endpoints.py`
 
 ---
 
-# 🔄 3. Pipeline en Detalle
+# 🔄 3. Pipeline in Detail
 
-## **3.1 Extracción Leaderboard → Landing**
-Genera Parquets diarios:
-pvp_leaderboard_s{season}{bracket}{YYYYMMDD}.parquet
-
+## **3.1 Leaderboard Extraction → Landing**
+Generates daily Parquet files:  
+`pvp_leaderboard_s{season}{bracket}{YYYYMMDD}.parquet`
 
 ---
 
 ## **3.2 RAW Leaderboard (DuckDB)**
-Insert directo a:
-raw_pvp_leaderboard
-
+Direct insert into:  
+`raw_pvp_leaderboard`
 
 ---
 
 ## **3.3 CUR Leaderboard**
-Transformación tipada → `cur_pvp_leaderboard`
+Typed transformation → `cur_pvp_leaderboard`
 
 ---
 
-## **3.4 Selección de Personajes Top**
-Ranking por bracket y deduplicación por `char_id`  
-Límite total: **500 personajes**
+## **3.4 Top Character Selection**
+Ranking by bracket and deduplication by `char_id`  
+Total limit: **500 characters**
 
 ---
 
-## **3.5 Extracción Character Profiles**
-Request concurrente (ThreadPoolExecutor) → Parquet:
-ch_profile_{YYYYMMDD}.parquet
+## **3.5 Character Profile Extraction**
+Concurrent requests (ThreadPoolExecutor) → Parquet:  
+`ch_profile_{YYYYMMDD}.parquet`
 
 ---
 
 ## **3.6 RAW Character Info**
-Carga en `raw_chinfo`.
+Load into `raw_chinfo`.
 
 ---
 
 ## **3.7 CUR Character Info**
-Transformación → `cur_chinfo`.
+Transformation → `cur_chinfo`.
 
 ---
 
-## **3.8 Carga en Redshift (Modelo Estrella)**
+## **3.8 Load into Redshift (Star Schema)**
 
-### Dimensiones:
+### Dimensions:
 - `dim_season`
 - `dim_bracket`
-- `dim_character_scd2` (**SCD2 diario real**)
+- `dim_character_scd2` (**true daily SCD2**)
 
-### Tabla de hechos:
+### Fact table:
 - `fact_pvp_leaderboard_snapshot`
 
 ---
 
-# 🪬 4. DAG de Airflow
+# 🪬 4. Airflow DAG
 
-Orden real:
+Execution order:
 
-set_blizzard_env_vars
-→ extract_leaderboard_to_landing
-→ load_leaderboard_raw_to_db
-→ build_leaderboard_cur
-→ extract_chinfo_to_landing
-→ load_chinfo_raw_to_db
-→ build_chinfo_cur
-→ load_redshift_model
+→ set_blizzard_env_vars          
 
-El DAG está diseñado para correr diariamente a las 06:00 (0 6 * * *).
+→ extract_leaderboard_to_landing 
 
-**ACLARACIÓN**: En este repo se deja el schedule_interval=None para facilitar pruebas manuales.
-Para activar la ejecución diaria, basta con reemplazar schedule_interval=None por schedule_interval="0 6 * * *".
+→ load_leaderboard_raw_to_db  
+
+→ build_leaderboard_cur  
+
+→ extract_chinfo_to_landing  
+
+→ load_chinfo_raw_to_db  
+
+→ build_chinfo_cur  
+
+→ load_redshift_model  
+
+The DAG is designed to run daily at 06:00 (0 6 * * *).
+
+**NOTE**: In this repository, `schedule_interval=None` is set to facilitate manual testing.  
+To enable daily execution, simply replace `schedule_interval=None` with `schedule_interval="0 6 * * *"`.
 
 ---
 
-# 🚀 5. Cómo Ejecutar el Proyecto
+# 🚀 5. How to Run the Project
 
-## **5.1 Requisitos previos**
-Instalar:
+## **5.1 Prerequisites**
+
+Install:
+
 - Docker + Docker Compose  
-- Python 3.10 (solo para tests)  
+
+- Python 3.10 (tests only) 
+
 - git  
 
-Clonar:
+Clone the repository:
 
-```bash
-git clone https://github.com/tomiproyectx/WoW-Blizzard-API.git
+git clone https://github.com/tomiproyectx/WoW-Blizzard-API.git  
+
 cd WoW-Blizzard-API
-```
-## **5.2 Configurar credenciales**
 
-Crear .env:
+---
+
+## 5.2 Configure Credentials
+
+Create the `.env` file:
+
 ```bash
 make env
 ```
-Completar:
 
-***BLIZZARD_CLIENT_ID***=xxxx
+Fill in:
 
-***BLIZZARD_CLIENT_SECRET***=xxxx
+BLIZZARD_CLIENT_ID=xxxx
 
-***BLIZZARD_REGION***=us
+BLIZZARD_CLIENT_SECRET=xxxx  
 
-***REDSHIFT_URI***=postgresql://user:pass@host:5439/db
+BLIZZARD_REGION=us 
 
-***REDSHIFT_SCHEMA***=2025_usuario_schema
+REDSHIFT_URI=postgresql://user:pass@host:5439/db  
 
-> Las credenciales reales de Blizzard y Redshift se entregan por privado (mail / Slack),
-> el archivo `.env` del repo solo contiene el esqueleto de variables.
+REDSHIFT_SCHEMA=2025_user_schema
 
-## **5.3 Construir imagen**
+> Real Blizzard and Redshift credentials are provided privately (email / Slack).  
+> The `.env` file in the repository only contains the variable skeleton.
+
+---
+
+## 5.3 Build Image
+
 ```bash
 make build
 ```
-## **5.4 Inicializar Airflow**
+
+---
+
+## 5.4 Initialize Airflow
+
 ```bash
 make init
 ```
-Crea:
 
-metadata DB
+Creates:
 
-usuario admin
+- Metadata database
 
-variables Blizzard
+- Admin user
 
-## **5.5 Levantar Airflow**
+- Blizzard variables
+
+---
+
+## 5.5 Start Airflow
+
 ```bash
 make up
 ```
-UI:
-👉 http://localhost:8080
-User: airflow
-Password: airflow
 
-## **5.6 Ejecutar DAG**
+Airflow UI:  
 
-En Airflow:
+👉 http://localhost:8080  
 
-Activar DAG
+User: `airflow`  
 
-Trigger manual
+Password: `airflow`
 
-Genera:
+---
 
-Parquets → data/landing/
+## 5.6 Run the DAG
 
-DuckDB → data/localdb/wow_data.db
+In Airflow:
+
+- Enable the DAG
+
+- Trigger it manually
+
+Outputs:
+
+- Parquet files → `data/landing/`
+
+- DuckDB database → `data/localdb/wow_data.db`
+
+---
 
 # 6. Testing
 
-Carpeta: tests/
-Incluye tests para:
+Folder: `tests/`
 
-autenticación
+Includes tests for:
 
-transformaciones leaderboard
+- Authentication
 
-transformaciones chinfo
+- Leaderboard transformations
 
-Ejecutar:
+- Character info transformations
+
+Run:
+
 ```bash
 make test
 ```
-GitHub Actions ejecuta los tests en cada PR.
 
-# 7. Consideraciones Previas (Docker & Permisos)
+GitHub Actions runs tests on every pull request.
 
-## **7.1 Uso de sudo según configuración Docker**
+---
 
-Si Docker requiere privilegios:
+# 7. Preliminary Considerations (Docker & Permissions)
+
+## 7.1 sudo usage depending on Docker configuration
+
+If Docker requires privileges:
+
 ```bash
-sudo make build
-sudo make up
+sudo make build  
+sudo make up  
 sudo docker compose ps
 ```
 
-Si el usuario pertenece al grupo docker, no es necesario.
+If the user belongs to the docker group, this is not required.
 
-## **7.2 Carpeta data/ requerida**
+---
 
-data/landing/   → Parquets
-data/localdb/   → Base DuckDB
-``` bash
-mkdir -p data/landing
-mkdir -p data/localdb
+## 7.2 Required data folders
+
+```haskell
+data/landing/   → Parquet files  
+data/localdb/   → DuckDB database
+```
+
+Create them:
+
+```bash
+mkdir -p data/landing  
+mkdir -p data/localdb  
 chmod -R 755 data/
 ```
 
-# 8. Estructura del repositorio (alto nivel)
+---
 
-- `dags/wow_pvp_full_pipeline_dag.py`  
-  DAG diario que orquesta todo el pipeline:
+# 8. Repository Structure (High Level)
+
+- `dags/wow_pvp_full_pipeline_dag.py` 
+
+  Daily DAG orchestrating the full pipeline:  
+  
   Blizzard API → DuckDB (raw/cur) → Redshift.
 
-- `src/tp2025/blizzard_api/`  
-  - `auth_client.py`: autenticación contra Blizzard (Client Credentials Flow).
-  - `endpoints.py`: construcción de URLs de las APIs (season, leaderboard, profile).
+- `src/tp2025/blizzard_api/`
 
-- `src/tp2025/jobs/`  
-  - `extract_leaderboard_to_landing.py`: extrae PvP leaderboards a Parquet (landing).
-  - `load_leaderboard_raw_to_db.py`: carga leaderboards a tabla RAW (DuckDB).
-  - `build_leaderboard_cur.py`: genera tabla CUR de leaderboard.
-  - `extract_chinfo_to_landing.py`: selecciona top chars y extrae profiles a Parquet.
-  - `load_chinfo_raw_to_db.py`: carga info de personajes a RAW.
-  - `build_chinfo_cur.py`: genera tabla CUR de personajes.
-  - `load_warehouse_redshift.py`: lee CUR (DuckDB) y carga modelo estrella en Redshift.
+  - `auth_client.py`: Blizzard authentication (Client Credentials Flow).
 
-- `src/tp2025/transforms/`  
-  - `transform_leaderboard.py`: lógica de casteo y modelado de `cur_pvp_leaderboard`.
-  - `transform_chinfo.py`: lógica de casteo y modelado de `cur_chinfo`.
+  - `endpoints.py`: API URL construction (season, leaderboard, profile).
 
-- `src/tp2025/warehouse/`  
-  - `connect_redshift.py`: conexión y `search_path` a Redshift.
-  - `redshift_model.py`: DDL + cargas bulk (SCD2 de personajes y fact snapshot).
+- `src/tp2025/jobs/`
 
-- `src/tp2025/io/load_localdb.py`  
-  Helper para conexión a DuckDB y ejecución de SQL local.
+  - `extract_leaderboard_to_landing.py`: Extracts PvP leaderboards to Parquet (landing).
 
-- `src/tp2025/services/`  
-  - `character_selection.py`: selección de top personajes únicos desde CUR.
-  - `ch_profile_client.py`: requests concurrentes al endpoint de perfil de personaje.
+  - `load_leaderboard_raw_to_db.py`: Loads leaderboards into RAW (DuckDB).
 
-- `docker-compose.yml`  
-  Orquesta Postgres (metadata) + Airflow webserver/scheduler.
+  - `build_leaderboard_cur.py`: Builds CUR leaderboard table.
+
+  - `extract_chinfo_to_landing.py`: Selects top characters and extracts profiles to Parquet.
+
+  - `load_chinfo_raw_to_db.py`: Loads character info into RAW.
+
+  - `build_chinfo_cur.py`: Builds CUR character table.
+
+  - `load_warehouse_redshift.py`: Reads CUR (DuckDB) and loads the star schema into Redshift.
+
+- `src/tp2025/transforms/`
+
+  - `transform_leaderboard.py`: Casting and modeling logic for cur_pvp_leaderboard.
+
+  - `transform_chinfo.py`: Casting and modeling logic for cur_chinfo.
+
+- `src/tp2025/warehouse/`
+
+  - `connect_redshift.py`: Redshift connection and search_path.
+
+  - `redshift_model.py`: DDL and bulk loads (character SCD2 and fact snapshot).
+
+- `src/tp2025/io/load_localdb.py`
+
+  Helper for DuckDB connection and local SQL execution.
+
+- `src/tp2025/services/`
+
+  - `character_selection.py`: Selection of unique top characters from CUR.
+
+  - `ch_profile_client.py`: Concurrent requests to the character profile endpoint.
+
+- `docker-compose.yml`
+
+  Orchestrates Postgres (metadata) and Airflow webserver/scheduler.
 
 - `Dockerfile`  
-  Imagen custom de Airflow con el proyecto instalado vía `uv`.
+  
+  Custom Airflow image with the project installed via uv.
 
-- `Makefile`  
-  Atajos: `make env`, `make build`, `make init`, `make up`, `make down`, `make test`.
+- `Makefile`
 
-- `tests/`  
-  Tests unitarios para autenticación y transformaciones (leaderboard + chinfo).
+  Shortcuts: make env, make build, make init, make up, make down, make test.
+
+- `tests/`
+
+  Unit tests for authentication and transformations (leaderboard and character info).
