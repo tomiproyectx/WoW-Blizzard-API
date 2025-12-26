@@ -23,14 +23,17 @@
 # 📐 1. Arquitectura General
 
 <div align="center">
-  <a href="https://raw.githubusercontent.com/tomiproyectx/WoW-Blizzard-API/main/docs/DFD - WoW PVP Pipeline.drawio.svg" target="_blank">
+  <a href="https://raw.githubusercontent.com/tomiproyectx/WoW-Blizzard-API/main/docs/DFD%20-%20WoW%20PVP%20Pipeline.png">
     <img
-      src="./docs/DFD - WoW PVP Pipeline.drawio.svg"
+      src="./docs/DFD%20-%20WoW%20PVP%20Pipeline.drawio.svg"
       alt="DFD – WoW PvP Data Pipeline"
       width="1200"
     />
   </a>
 </div>
+
+🔍 **Interactive diagram (zoom & pan)**  
+[Open full diagram](https://app.diagrams.net/?title=DFD%20-%20WoW%20PVP%20Pipeline&dark=1#Uhttps%3A%2F%2Fdrive.google.com%2Fuc%3Fid%3D1EvyHY1401TK8Rg3L7pjWymF4CVcQ0qGY%26export%3Ddownload)
 
 </div>
 
